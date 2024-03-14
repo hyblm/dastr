@@ -1,0 +1,7 @@
+build:
+  gcc -o program binomial-heap.c program.c
+
+run:
+  gcc -o program binomial-heap.c program.c
+  ./program
+
