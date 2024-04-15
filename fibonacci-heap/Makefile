@@ -1,5 +1,5 @@
-C=gcc
-CFALGS=-Wall
+CC=gcc
+CFLAGS=-g -Wall
 LIBDIR=lib
 OBJDIR=obj
 LIBS=$(wildcard $(LIBDIR)/*.c)
@@ -7,6 +7,9 @@ OBJECTS=$(patsubst $(LIBS)/%.c, $(OBJDIR)/%.o, $(LIBS))
 BIN=fib
 
 all: $(BIN)
+
+run: $(BIN)
+	./fib
 
 release: CFLAGS=-Wall -O2 -DNDEBUG
 release: $(BIN)
@@ -19,3 +22,5 @@ $(OBJ)/%.o: $(LIBDIR)/%.c
 
 clean:
 	$(RM) fib obj/*.o
+
+
