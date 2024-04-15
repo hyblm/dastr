@@ -1,11 +1,21 @@
-typedef struct FibonacciTree fib_t;
+#include <stdint.h>
+
+#define KEY int32_t
+
 typedef struct Node node_t;
+typedef struct FibonacciTree
+{
+    uint32_t node_count;
+    node_t *min_ptr;
+} fib_t;
+
+fib_t *make_fib();
 
 void print(fib_t* root);
 
-int insert(fib_t* root, int32_t key);
+int insert(fib_t* root, KEY key);
 
-int32_t peek_min(fib_t* root);
-int32_t extract_min(fib_t* root);
+KEY peek_min(fib_t root);
+KEY extract_min(fib_t root);
 
-int32_t decrease_key(node_t* node, int32_t new_key);
+void decrease_key(fib_t root, node_t* node, KEY new_key);
