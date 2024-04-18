@@ -10,12 +10,13 @@ typedef struct FibonacciTree
 } fib_t;
 
 fib_t *make_fib();
+void destroy_fib(fib_t* heap);
 
 void print(fib_t* root);
 
-int insert(fib_t* root, KEY key);
+node_t* insert(fib_t* root, KEY key);
 
-KEY peek_min(fib_t root);
-KEY extract_min(fib_t root);
+KEY peek_min(fib_t* root);
+KEY extract_min(fib_t* root);
 
-void decrease_key(fib_t root, node_t* node, KEY new_key);
+void decrease_key(fib_t* root, node_t* node, KEY new_key);

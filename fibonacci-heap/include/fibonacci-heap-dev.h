@@ -1,4 +1,4 @@
-#include "fibonnacci-heap.h"
+#include "fibonacci-heap.h"
 #include <stdbool.h>
 
 struct Node
@@ -9,7 +9,7 @@ struct Node
     node_t *sibling_next;
     node_t *child;
     uint8_t degree;
+    bool marked;
 };
 
-bool is_marked(node_t *node);
-void toggle_marked(node_t *node);
+void print_key(char *prefix, node_t *node, char *sufix);
