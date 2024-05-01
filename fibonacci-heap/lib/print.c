@@ -1,9 +1,10 @@
-#include "../include/fibonacci-heap-dev.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "../include/fibonacci-heap-dev.h"
 
 #define INVERT "\x1b[;7m"
 #define DIM "\x1b[;2m"
@@ -23,94 +24,95 @@
 
 void print_key(char *prefix, node_t *node, char *sufix)
 {
-    printf("%s", prefix);
-    if (node->marked)
+  printf("%s", prefix);
+  if (node->marked)
     {
-        printf(RED);
+      printf(RED);
     }
 
-    if (node)
+  if (node)
     {
-        if (DEBUG)
+      if (DEBUG)
         {
-            printf("%d (%d)" DIM " %p 🢀" GREEN " %p " DIM "🢂 %p" PINK " 🢁 %p" TEAL " 🢃 %p" RESET, node->key,
-                   node->degree, node->sibling_prev, node, node->sibling_next, node->parent, node->child);
+          printf("%d (%d)" DIM " %p 🢀" GREEN " %p " DIM "🢂 %p" PINK " 🢁 %p" TEAL
+                 " 🢃 %p" RESET,
+                 node->key, node->degree, node->sibling_prev, node,
+                 node->sibling_next, node->parent, node->child);
         }
-        else
+      else
         {
-            printf("%d (%d)" RESET, node->key, node->degree);
+          printf("%d (%d)" RESET, node->key, node->degree);
         }
     }
-    else
+  else
     {
-        printf("__");
+      printf("__");
     }
-    printf("%s", sufix);
+  printf("%s", sufix);
 }
 
 char *join(char *prefix, char *end, bool *allocated)
 {
-    char *new;
-    if (!*prefix)
+  char *new;
+  if (!*prefix)
     {
-        return end;
+      return end;
     }
-    unsigned int midpoint = strlen(prefix);
-    unsigned int len = midpoint + strlen(end) + 1;
-    new = (char *)malloc(sizeof(char) * len);
-    if (new)
+  unsigned int midpoint = strlen(prefix);
+  unsigned int len = midpoint + strlen(end) + 1;
+  new = (char *)malloc(sizeof(char) * len);
+  if (new)
     {
-        strcpy(new, prefix);
-        if (end)
+      strcpy(new, prefix);
+      if (end)
         {
-            strcpy(new + midpoint, end);
+          strcpy(new + midpoint, end);
         }
     }
-    *allocated = true;
-    return new;
+  *allocated = true;
+  return new;
 }
 
 void print_tree(node_t *node, char *prefix, bool allocated)
 {
-
-    node_t *last = node->sibling_prev;
-    while (node != last)
+  node_t *last = node->sibling_prev;
+  while (node != last)
     {
-        printf("%s", prefix);
-        print_key(OTHER_ENTRY, node, "\n");
-        if (node->child)
+      printf("%s", prefix);
+      print_key(OTHER_ENTRY, node, "\n");
+      if (node->child)
         {
-            bool allocation = false;
-            char *child_prefix = join(prefix, OTHER_CHILD, &allocation);
-            print_tree(node->child, child_prefix, allocation);
+          bool allocation = false;
+          char *child_prefix = join(prefix, OTHER_CHILD, &allocation);
+          print_tree(node->child, child_prefix, allocation);
         }
 
-        node = node->sibling_next;
+      node = node->sibling_next;
     }
 
-    printf("%s", prefix);
-    print_key(FINAL_ENTRY, node, "\n");
-    if (node->child)
+  printf("%s", prefix);
+  print_key(FINAL_ENTRY, node, "\n");
+  if (node->child)
     {
-        bool allocation = false;
-        char *child_prefix = join(prefix, FINAL_CHILD, &allocation);
-        print_tree(node->child, child_prefix, allocation);
+      bool allocation = false;
+      char *child_prefix = join(prefix, FINAL_CHILD, &allocation);
+      print_tree(node->child, child_prefix, allocation);
     }
-    // printf("prefix: %p \'%s\'\n", prefix, prefix);
-    if (allocated)
+  // printf("prefix: %p \'%s\'\n", prefix, prefix);
+  if (allocated)
     {
-        free(prefix);
+      free(prefix);
     }
 }
 
 void print(fib_t *root)
 {
-    char *word = root->node_count == 1 ? "node" : "nodes";
-    printf(INVERT "▍ %d %s  " RESET "\n", root->node_count, word);
-    if (root->min_ptr)
+  char *word = root->node_count == 1 ? "node" : "nodes";
+  printf(INVERT "▍ %d %s  " RESET "\n", root->node_count, word);
+  if (root->min_ptr)
     {
-        printf(BLUE);
-        print_tree(root->min_ptr, "", false);
+      printf(BLUE);
+      print_tree(root->min_ptr, "", false);
     }
-    printf("\n");
+  printf("\n");
 }

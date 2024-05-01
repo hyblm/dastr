@@ -9,7 +9,7 @@ BIN=fib
 all: $(BIN)
 
 run: $(BIN)
-	./fib
+	./$(BIN)
 
 release: CFLAGS=-Wall -O2 -DNDEBUG
 release: $(BIN)
@@ -17,10 +17,10 @@ release: $(BIN)
 $(BIN): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) main.c -o $@
 
-$(OBJ)/%.o: $(LIBDIR)/%.c
+$(OBJDIR)/%.o: $(LIBDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) fib obj/*.o
+	$(RM) $(BIN) $(OBJDIR)/*.o
 
 
