@@ -1,7 +1,6 @@
 #include "splay_tree.h"
 
-int main(void)
-{
+int main(void) {
   Splay tree = {0};
   insert(&tree, 7);
   insert(&tree, 4);
