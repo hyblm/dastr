@@ -11,17 +11,22 @@ const RED: &str = "\x1b[;31m";
 const GREEN: &str = "\x1b[;32m";
 const RESET: &str = "\x1b[;0m";
 
-const HIGH_ROOT: fn(usize) -> usize = |value| 2_usize.pow(value.ilog2().div_ceil(2));
-const LOW_ROOT: fn(usize) -> usize = |value| 2_usize.pow(value.ilog2() / 2);
+const fn high_root(value: usize) -> usize {
+    2_usize.pow(value.ilog2().div_ceil(2))
+}
+
+const fn low_root(value: usize) -> usize {
+    2_usize.pow(value.ilog2() / 2)
+}
 
 impl VanEmdeBoas {
-    fn partition_value(&self, value: usize) -> (usize, usize) {
-        let low_root = LOW_ROOT(self.universe_size);
+    const fn partition_value(&self, value: usize) -> (usize, usize) {
+        let low_root = low_root(self.universe_size);
         (value / low_root, value % low_root)
     }
 
-    fn index(&self, y: usize, z: usize) -> usize {
-        (y * LOW_ROOT(self.universe_size)) + z
+    const fn index(&self, y: usize, z: usize) -> usize {
+        (y * low_root(self.universe_size)) + z
     }
 
     pub fn new(size: usize) -> Self {
@@ -29,9 +34,9 @@ impl VanEmdeBoas {
 
         let mut clusters = vec![];
         let summary = if universe_size > 2 {
-            let summary_size = HIGH_ROOT(universe_size);
+            let summary_size = high_root(universe_size);
             for _ in 0..summary_size {
-                clusters.push(VanEmdeBoas::new(LOW_ROOT(universe_size)));
+                clusters.push(VanEmdeBoas::new(low_root(universe_size)));
             }
             Some(Box::new(VanEmdeBoas::new(summary_size)))
         } else {
@@ -46,7 +51,7 @@ impl VanEmdeBoas {
         }
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.bounds.is_none()
     }
 
@@ -169,7 +174,7 @@ impl VanEmdeBoas {
         } else {
             ("       ", "╰─")
         };
-        print!("{DIM}{}{}{RESET}{}", prefix, a, tag);
+        print!("{}{}{}{}{}", DIM, prefix, a, RESET, tag);
         self.print_tree(&format!("{}{}", prefix, b));
     }
 
