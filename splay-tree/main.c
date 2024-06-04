@@ -1,12 +1,9 @@
 #include "splay_tree.h"
 
+#define COUNT 6
 int main(void) {
-  Splay tree = {0};
-  insert(&tree, 7);
-  insert(&tree, 4);
-  insert(&tree, 5);
-  insert(&tree, 6);
-  insert(&tree, 3);
-  search(&tree, 5);
-  print(&tree);
+  Tree splay = {0};
+  insert_many(&splay, COUNT, (KEY[COUNT]){7, 4, 8, 5, 6, 3});
+  search(&splay, 7);
+  print(&splay);
 }

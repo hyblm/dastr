@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 
+struct node {
+  KEY key;
+  NodeRef le;
+  NodeRef gt;
+};
+
 NodeRef create_node(KEY value) {
   NodeRef new_node = (NodeRef)malloc(sizeof(struct node));
   if (new_node != NULL) { *new_node = (struct node){value, NULL, NULL}; }
@@ -15,16 +21,16 @@ void destroy_node(NodeRef node) {
 }
 
 NodeRef pick_subtree(NodeRef root, KEY value) {
-  return value <= root->key ? root->left : root->right;
+  return value <= root->key ? root->le : root->gt;
 }
 
 void zig(NodeRef parent, NodeRef child) {
   if (child->key <= parent->key) {
-    parent->left = child->right;
-    child->right = parent;
+    parent->le = child->gt;
+    child->gt = parent;
   } else {
-    parent->right = child->left;
-    child->left = parent;
+    parent->gt = child->le;
+    child->le = parent;
   }
 }
 
@@ -38,53 +44,53 @@ void zigzag(NodeRef grandparent, NodeRef parent, NodeRef child) {
   zig(grandparent, child);
 }
 
-void splay(SplayRef root, KEY value) {
+void splay(TreeRef root, KEY value) {
   if (!root) return;
   NodeRef root_node = *root;
   if (!root_node) return;
 
   if (value == root_node->key) return;
 
-  bool is_left = value <= root_node->key;
-  SplayRef sub_tree = is_left ? &root_node->left : &root_node->right;
-  NodeRef sub_tree_node = *sub_tree;
+  bool child_is_le = value <= root_node->key;
+  TreeRef child = child_is_le ? &root_node->le : &root_node->gt;
+  NodeRef child_node = *child;
 
-  if (value == sub_tree_node->key) {
-    zig(root_node, sub_tree_node);
-    *root = sub_tree_node;
+  if (value == child_node->key) {
+    zig(root_node, child_node);
+    *root = child_node;
   } else {
-    bool is_left_2 = value <= sub_tree_node->key;
-    NodeRef sub_sub_tree_node =
-        is_left_2 ? sub_tree_node->left : sub_tree_node->right;
+    bool grandchild_is_le = value <= child_node->key;
+    NodeRef grandchild_node =
+        grandchild_is_le ? child_node->le : child_node->gt;
 
-    if (value == sub_sub_tree_node->key) {
-      if (is_left == is_left_2) {
-        zigzig(root_node, sub_tree_node, sub_sub_tree_node);
+    if (value == grandchild_node->key) {
+      bool direction_of_subtrees_matches = child_is_le == grandchild_is_le;
+      if (direction_of_subtrees_matches) {
+        zigzig(root_node, child_node, grandchild_node);
       } else {
-        zigzag(root_node, sub_tree_node, sub_sub_tree_node);
+        zigzag(root_node, child_node, grandchild_node);
       }
-      *root = sub_sub_tree_node;
+      *root = grandchild_node;
     } else {
-      splay(sub_tree, value);
+      splay(child, value);
       splay(root, value);
     }
   }
 }
 
-void insert_node(SplayRef root, NodeRef node) {
+void insert_node(TreeRef root, NodeRef node) {
   if (!root) return;
   NodeRef root_node = *root;
 
   if (!root_node) {
     *root = node;
   } else {
-    insert_node(
-        node->key <= root_node->key ? &root_node->left : &root_node->right,
-        node);
+    insert_node(node->key <= root_node->key ? &root_node->le : &root_node->gt,
+                node);
   }
 }
 
-NodeRef insert(SplayRef root, KEY value) {
+NodeRef insert(TreeRef root, KEY value) {
   NodeRef new_node = create_node(value);
   if (new_node) {
     insert_node(root, new_node);
@@ -93,8 +99,15 @@ NodeRef insert(SplayRef root, KEY value) {
   return new_node;
 }
 
+void insert_many(TreeRef root, int32_t count, KEY numbers[1]) {
+  for (int* end = numbers + count; numbers < end; numbers++) {
+    insert(root, *numbers);
+  }
+}
+
 NodeRef find_node(NodeRef origin, KEY value, NodeRef* last_visited) {
   if (!origin) { return NULL; }
+
   *last_visited = origin;
 
   if (value == origin->key) {
@@ -104,84 +117,71 @@ NodeRef find_node(NodeRef origin, KEY value, NodeRef* last_visited) {
   }
 }
 
-NodeRef search(SplayRef root, KEY value) {
+NodeRef search(TreeRef root, KEY value) {
   NodeRef last_visited;
   NodeRef node = find_node(*root, value, &last_visited);
   splay(root, last_visited->key);
   return node;
 }
 
-NodeRef max(NodeRef node) {
-  return node->right ? max(node->right) : node;
+NodeRef max(TreeRef tree) {
+  NodeRef node = *tree;
+  return (node)->gt ? max(&node->gt) : node;
 }
 
-void remove_node(SplayRef root, KEY node_key) {
-  // NOTE (osicka): 1. splay
+void remove_node(TreeRef root, KEY node_key) {
   splay(root, node_key);
 
-  // NOTE (osicka): 2. odebereme koren, zustanou nam 2 podstromy
   NodeRef root_node = *root;
-  NodeRef left = root_node->left;
-  NodeRef right = root_node->right;
+  NodeRef le = root_node->le;
+  NodeRef gt = root_node->gt;
   destroy_node(root_node);
 
-  // NOTE (osicka): 3. najdeme max leveho podstromu a zavolame na nej splay
-  // maximum leveho podstromu nikdy nebude mit praveho potomka (>)
-  NodeRef left_max = max(left);
-  *root = left;
-  splay(root, left_max->key);
+  NodeRef le_max = max(&le);
+  *root = le;
+  splay(root, le_max->key);
 
-  // NOTE (osicka): 4. jako praveho potomka y pripojime pravy podstrom
-  (*root)->right = right;
+  (*root)->gt = gt;
 }
 
-#define MAX_SHIFT sizeof(int) * 8
-
-#define INVERT "\x1b[;7m"
-#define DIM "\x1b[;2m"
 #define RED "\x1b[;31m"
-#define GREEN "\x1b[;32m"
 #define BLUE "\x1b[;34m"
-#define PINK "\x1b[;35m"
-#define TEAL "\x1b[;36m"
 #define RESET "\x1b[;0m"
 
 #define NODE ""
-#define LEFT BLUE "│ " RESET
-// #define RIGHT RED "╰─" RESET
-#define RIGHT RED "─╮" RESET
-#define BLANK "   "
+#define LE BLUE "│ " RESET
+#define GT RED "─╮" RESET
+#define BLANK "  "
 
-void print_tree(NodeRef tree, int inset, int lines) {
-  // printf("( %d %b ) ", inset, lines);
+void print_connection_lines(int inset, int lines) {
   for (int i = inset - 1; i >= 0; i--) {
-    printf(((1 << i) & lines) ? LEFT : BLANK);
+    printf(((1 << i) & lines) ? LE : BLANK);
   }
-  if (!tree) return;
+}
+
+void print_tree(Tree tree, int inset, int lines) {
+  print_connection_lines(inset, lines);
   printf(NODE "%d", tree->key);
+  if (tree->gt) { printf(GT); }
+  printf("\n");
 
   int child_inset = inset + 1;
   int child_lines = lines << 1;
-  if (tree->left) { child_lines = child_lines | 1; }
+  if (tree->le) { child_lines |= 1; }
 
-  if (tree->right) {
-    puts(RIGHT);
-    print_tree(tree->right, child_inset, child_lines);
-  } else if (tree->left) {
-    puts("");
-    print_tree(NULL, child_inset, child_lines);
-    puts("");
-  } else {
-    puts("");
+  if (tree->gt) {
+    print_tree(tree->gt, child_inset, child_lines);
+  } else if (tree->le) {
+    print_connection_lines(child_inset, child_lines);
+    printf("\n");
   }
 
-  if (tree->left) print_tree(tree->left, inset, lines);
+  if (tree->le) { print_tree(tree->le, inset, lines); }
 }
 
-void print(SplayRef tree) {
-  // printf("%lu %0b\n", MAX_SHIFT, INT_MAX);
+void print(TreeRef tree) {
   if (!tree) return;
-  NodeRef root_node = *tree;
+  Tree root_node = *tree;
   if (!root_node) return;
 
   print_tree(root_node, 0, 0);
