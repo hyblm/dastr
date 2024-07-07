@@ -1,4 +1,4 @@
-CC=gcc
+CC=zig cc
 CFLAGS=-g -Wall
 LIBDIR=lib
 OBJDIR=obj
